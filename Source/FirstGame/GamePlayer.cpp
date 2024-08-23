@@ -3,11 +3,17 @@
 AGamePlayer::AGamePlayer()
 {
 	PrimaryActorTick.bCanEverTick = true;
-
-	PlayerMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlayerMesh"));
-	PlayerMesh->SetupAttachment(GetCapsuleComponent());
+	CameraArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	CameraArm->SetupAttachment(RootComponent);
 	PlayerCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCamera"));
-	PlayerCamera->SetupAttachment(GetCapsuleComponent());
+	PlayerCamera->SetupAttachment(CameraArm, USpringArmComponent::SocketName);
+
+	CameraArm->TargetArmLength = 300.0f;      // 弹簧臂的长度
+	CameraArm->bUsePawnControlRotation = true;// 使弹簧臂跟随控制器的旋转
+	bUseControllerRotationYaw = false;        // 禁用控制器旋转
+
+	JumpForwardSpeed = 300.0f;
+	JumpUpwardSpeed = 200.0f;
 }
 
 void AGamePlayer::BeginPlay()
@@ -25,22 +31,40 @@ void AGamePlayer::Tick(float DeltaTime)
 void AGamePlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	PlayerInputComponent->BindAxis(TEXT("MoveFB"), this, &AGamePlayer::MoveFB);
-	PlayerInputComponent->BindAxis(TEXT("MoveLR"), this, &AGamePlayer::MoveLR);
+	PlayerInputComponent->BindAxis(TEXT("MoveForward"), this, &AGamePlayer::MoveForward);
+	PlayerInputComponent->BindAxis(TEXT("MoveRight"), this, &AGamePlayer::MoveRight);
 	PlayerInputComponent->BindAxis(TEXT("RotateYaw"), this, &AGamePlayer::RotateYaw);
+	PlayerInputComponent->BindAxis(TEXT("RotatePitch"), this, &AGamePlayer::RotatePitch);
 }
 
-void AGamePlayer::MoveFB(float Value)
+void AGamePlayer::MoveForward(float Value)
 {
-	AddMovementInput(GetActorForwardVector(), Value * MoveSpeed);
+	if (Controller && Value != 0.0f)
+	{
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		AddMovementInput(Direction, Value);
+	}
 }
 
-void AGamePlayer::MoveLR(float Value)
+void AGamePlayer::MoveRight(float Value)
 {
-	AddMovementInput(GetActorRightVector(), Value * MoveSpeed);
+	if (Controller && Value != 0.0f)
+	{
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+		AddMovementInput(Direction, Value);
+	}
 }
 
 void AGamePlayer::RotateYaw(float Value)
 {
 	AddControllerYawInput(Value * RotationSpeed);
+}
+
+void AGamePlayer::RotatePitch(float Value)
+{
+	AddControllerPitchInput(Value * RotationSpeed);
 }

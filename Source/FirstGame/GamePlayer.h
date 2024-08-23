@@ -2,8 +2,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
-#include "Components/CapsuleComponent.h"
 #include "GamePlayer.generated.h"
 
 UCLASS()
@@ -18,19 +19,26 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float JumpForwardSpeed;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	float JumpUpwardSpeed;
 private:
 	UPROPERTY(EditDefaultsOnly)
-	UStaticMeshComponent* PlayerMesh;
+	USpringArmComponent* CameraArm;
 	UPROPERTY(EditDefaultsOnly)
 	UCameraComponent* PlayerCamera;
 
-	void MoveFB(float Value);
-	void MoveLR(float Value);
+	void MoveForward(float Value);
+	void MoveRight(float Value);
 	void RotateYaw(float Value);
+	void RotatePitch(float Value);
 
 	UPROPERTY(EditAnywhere)
 	float MoveSpeed = 1.0f;
 	UPROPERTY(EditAnywhere)
 	float RotationSpeed = 1.0f;
+
+
+
 };
