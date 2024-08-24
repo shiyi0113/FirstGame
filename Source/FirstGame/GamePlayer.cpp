@@ -1,4 +1,5 @@
 #include "GamePlayer.h"
+#include "GameEnemy.h"
 
 AGamePlayer::AGamePlayer()
 {
@@ -36,6 +37,7 @@ void AGamePlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAction(TEXT("Attack"), IE_Pressed, this, &AGamePlayer::Attack);
 }
 
+/*ÒÆ¶¯*/
 void AGamePlayer::MoveForward(float Value)
 {
 	if (Controller && Value != 0.0f)
@@ -68,6 +70,7 @@ void AGamePlayer::RotatePitch(float Value)
 	AddControllerPitchInput(Value * RotationSpeed);
 }
 
+/*¹¥»÷*/
 void AGamePlayer::Attack()
 {
 	if (CanAttack && AttackMontage){
@@ -89,10 +92,10 @@ void AGamePlayer::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 void AGamePlayer::PerformAttack()
 {
 	FVector Start = ArrowComponent->GetComponentLocation();
-	FVector End = Start + ArrowComponent->GetForwardVector() * TraceDistance;
+	FVector End = Start + ArrowComponent->GetForwardVector() * 100.0f;
 	TArray<FHitResult> HitResults;
 	FCollisionShape CollisionShape;
-	CollisionShape.SetSphere(TraceRadius);
+	CollisionShape.SetSphere(25.0f);
 	/*»æÖÆ¹¥»÷·¶Î§*/
 	//DrawDebugSphere(GetWorld(), Start, TraceRadius, 12, FColor::Red, false, 1.0f);
 	//DrawDebugSphere(GetWorld(), End, TraceRadius, 12, FColor::Red, false, 1.0f);
@@ -111,7 +114,7 @@ void AGamePlayer::PerformAttack()
 				AGameEnemy* Enemy = Cast<AGameEnemy>(HitActor);
 				if (Enemy){
 					FDamageEvent DamageEvent;
-					Enemy->TakeDamage(DamageAmount, DamageEvent, GetController(), this);
+					Enemy->TakeDamage(Damage, DamageEvent, GetController(), this);
 					DamagedActors.Add(HitActor);
 				}
 			}
@@ -119,3 +122,41 @@ void AGamePlayer::PerformAttack()
 	}
 	DamagedActors.Empty();
 }
+
+
+/*ÊÜ»÷*/
+float AGamePlayer::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	Health -= DamageAmount;
+	UE_LOG(LogTemp, Warning, TEXT("Player Health: %f"), Health);
+	if (Health <= 0.0f)
+	{
+		PlayerDie();
+	}
+	else {
+		if (DamageCauser)
+		{
+			FVector KnockbackDirection = (GetActorLocation() - DamageCauser->GetActorLocation()).GetSafeNormal();
+			ApplyKnockback(KnockbackDirection, 1000.0f);
+		}
+	}
+	return DamageAmount;
+}
+
+void AGamePlayer::PlayerDie()
+{
+	GetMesh()->SetSimulatePhysics(true);
+	GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
+}
+
+void AGamePlayer::ApplyKnockback(const FVector& KnockbackDirection, float KnockbackStrength)
+{
+	if (GetCharacterMovement())
+	{
+		FVector KnockbackImpulse = KnockbackDirection * KnockbackStrength;
+		GetCharacterMovement()->AddImpulse(KnockbackImpulse, true);
+	}
+}
+
+
+

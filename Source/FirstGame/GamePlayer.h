@@ -1,7 +1,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameEnemy.h"
 #include "Engine/DamageEvents.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -20,8 +19,10 @@ public:
 	AGamePlayer();
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	void PerformAttack();
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+	void PerformAttack();   //攻击函数
+	UPROPERTY(EditAnywhere)
+	float Health = 100.0f;            //生命值
 protected:
 	virtual void BeginPlay() override;
 	
@@ -33,15 +34,16 @@ private://变量
 	UPROPERTY(EditDefaultsOnly)
 	UAnimMontage* AttackMontage;     //攻击动画
 	UArrowComponent* ArrowComponent; //箭头组件
+
+
 	UPROPERTY(EditAnywhere)
 	float MoveSpeed = 1.0f;          //移动速度
 	UPROPERTY(EditAnywhere) 
 	float RotationSpeed = 1.0f;      //转动视角速度
- 	bool CanAttack = true;
 	UPROPERTY(EditAnywhere)
-	float DamageAmount = 10.0f;    //伤害
-	float TraceDistance = 200.0f;  //攻击距离
-	float TraceRadius = 50.0f;     //攻击半径
+	float Damage = 10.0f;      //伤害
+
+	bool CanAttack = true;
 	TArray<AActor*> DamagedActors; //存储已经受击的敌人
 
 private://函数
@@ -51,5 +53,6 @@ private://函数
 	void RotatePitch(float Value);  //Y方向旋转
 	void Attack();                  //攻击动画
 	void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);  //播放完攻击动画才能再播放
-	
+	void PlayerDie();   //死亡处理
+	void ApplyKnockback(const FVector& KnockbackDirection, float KnockbackStrength); //未死亡击退效果
 };

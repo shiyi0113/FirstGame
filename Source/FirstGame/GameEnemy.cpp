@@ -3,18 +3,24 @@
 AGameEnemy::AGameEnemy()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	AttackRangeArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("AttackRangeArrow"));
+	AttackRangeArrow->SetupAttachment(RootComponent);
 }
 
 void AGameEnemy::BeginPlay()
 {
 	Super::BeginPlay();
-
+	TargetActor = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
 }
 
 void AGameEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	if (TargetActor)
+	{
+		MoveToTarget();
+		PerformAttack();
+	}
 }
 
 void AGameEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -23,6 +29,7 @@ void AGameEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 
 }
 
+/*受击*/
 float AGameEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	Health -= DamageAmount;
@@ -56,3 +63,82 @@ void AGameEnemy::ApplyKnockback(const FVector& KnockbackDirection, float Knockba
 		GetCharacterMovement()->AddImpulse(KnockbackImpulse, true);
 	}
 }
+
+
+
+/*攻击*/
+void AGameEnemy::Attack()
+{
+    if (CanAttack && AttackMontage) {
+        PlayAnimMontage(AttackMontage);
+        CanAttack = false;
+        FOnMontageEnded MontageEndedDelegate;
+        MontageEndedDelegate.BindUObject(this, &AGameEnemy::OnAttackMontageEnded);
+        GetMesh()->GetAnimInstance()->Montage_SetEndDelegate(MontageEndedDelegate, AttackMontage);
+    }
+}
+
+void AGameEnemy::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+    if (Montage == AttackMontage) {
+        CanAttack = true;
+    }
+}
+
+void AGameEnemy::PerformAttack()
+{
+	// 检查敌人是否在攻击范围内
+	FVector Start = AttackRangeArrow->GetComponentLocation();
+	FVector End = Start + AttackRangeArrow->GetForwardVector() * 100.0f; // 假设攻击范围为200
+	TArray<FHitResult> HitResults;
+	FCollisionShape CollisionShape;
+	CollisionShape.SetSphere(25.0f); // 假设攻击范围半径为50
+
+	bool bHit = GetWorld()->SweepMultiByObjectType(
+		HitResults,
+		Start,
+		End,
+		FQuat::Identity,
+		FCollisionObjectQueryParams(ECollisionChannel::ECC_Pawn),
+		CollisionShape
+	);
+
+	if (bHit && !bIsAttacking && Health>0)
+	{
+		for (auto& Hit : HitResults)
+		{
+			AActor* HitActor = Hit.GetActor();
+			if (HitActor == TargetActor)
+			{
+				AttackTarget();
+				break; // 找到主角后退出循环
+			}
+		}
+	}
+}
+
+void AGameEnemy::MoveToTarget()
+{
+	if (AAIController* AIController = Cast<AAIController>(GetController()))
+	{
+		AIController->MoveToActor(TargetActor, 5.0f, true, true, true, 0, true);
+	}
+}
+
+void AGameEnemy::AttackTarget()
+{
+	if (AGamePlayer* Player = Cast<AGamePlayer>(TargetActor))
+	{
+		bIsAttacking = true;
+		FDamageEvent DamageEvent;
+		Player->TakeDamage(Damage, DamageEvent, GetController(), this);
+		Attack();                // 播放攻击动画
+		GetWorld()->GetTimerManager().SetTimer(AttackTimerHandle, this, &AGameEnemy::ResetAttack, 1.0f, false);
+	}
+}
+
+void AGameEnemy::ResetAttack()
+{
+	bIsAttacking = false;
+}
+
