@@ -11,6 +11,7 @@ void AGameEnemy::BeginPlay()
 {
 	Super::BeginPlay();
 	TargetActor = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+
 }
 
 void AGameEnemy::Tick(float DeltaTime)
@@ -63,7 +64,6 @@ void AGameEnemy::ApplyKnockback(const FVector& KnockbackDirection, float Knockba
 		GetCharacterMovement()->AddImpulse(KnockbackImpulse, true);
 	}
 }
-
 
 
 /*¹¥»÷*/
@@ -119,9 +119,16 @@ void AGameEnemy::PerformAttack()
 
 void AGameEnemy::MoveToTarget()
 {
-	if (AAIController* AIController = Cast<AAIController>(GetController()))
-	{
-		AIController->MoveToActor(TargetActor, 5.0f, true, true, true, 0, true);
+	if (AAIController* AIController = Cast<AAIController>(GetController())){
+		if (TargetActor){
+			AIController->MoveToActor(TargetActor, 5.0f, true, true, true, 0, true);
+		}
+		else{
+			UE_LOG(LogTemp, Warning, TEXT("TargetActor is null"));
+		}
+	}
+	else{
+		UE_LOG(LogTemp, Warning, TEXT("AIController is null"));
 	}
 }
 
@@ -141,4 +148,3 @@ void AGameEnemy::ResetAttack()
 {
 	bIsAttacking = false;
 }
-

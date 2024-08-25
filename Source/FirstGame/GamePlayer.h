@@ -27,9 +27,7 @@ protected:
 	virtual void BeginPlay() override;
 	
 private://±äÁ¿
-	UPROPERTY(EditDefaultsOnly)
 	USpringArmComponent* CameraArm;  //µ¯»É±Û
-	UPROPERTY(EditDefaultsOnly)
 	UCameraComponent* PlayerCamera;  //ÉãÏñ»ú
 	UPROPERTY(EditDefaultsOnly)
 	UAnimMontage* AttackMontage;     //¹¥»÷¶¯»­

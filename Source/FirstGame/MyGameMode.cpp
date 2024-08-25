@@ -1,5 +1,7 @@
 #include "MyGameMode.h"
 
+
+
 void AMyGameMode::InitGameState()
 {
 	Super::InitGameState();

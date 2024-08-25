@@ -1,8 +1,10 @@
 #pragma once
+
 #include "GamePlayer.h"
 #include "Engine/Engine.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "CoreMinimal.h"
+
 #include "GameFramework/Character.h"
 #include "MyAIController.h"
 #include "Kismet/GameplayStatics.h"
