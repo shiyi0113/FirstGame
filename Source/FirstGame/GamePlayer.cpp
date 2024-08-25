@@ -1,6 +1,6 @@
 #include "GamePlayer.h"
 #include "GameEnemy.h"
-
+#include "MyHUD.h"
 AGamePlayer::AGamePlayer()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -14,6 +14,8 @@ AGamePlayer::AGamePlayer()
 	CameraArm->TargetArmLength = 300.0f;      // µ¯»É±ÛµÄ³¤¶È
 	CameraArm->bUsePawnControlRotation = true;// Ê¹µ¯»É±Û¸úËæ¿ØÖÆÆ÷µÄÐý×ª
 	bUseControllerRotationYaw = false;        // ½ûÓÃ¿ØÖÆÆ÷Ðý×ª
+	CurrentHealth = MaxHealth;
+	bIsCharacterDead = false;
 }
 
 void AGamePlayer::BeginPlay()
@@ -40,7 +42,7 @@ void AGamePlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 /*ÒÆ¶¯*/
 void AGamePlayer::MoveForward(float Value)
 {
-	if (Controller && Value != 0.0f)
+	if (Controller && Value != 0.0f&& !bIsCharacterDead)
 	{
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
@@ -51,7 +53,7 @@ void AGamePlayer::MoveForward(float Value)
 
 void AGamePlayer::MoveRight(float Value)
 {
-	if (Controller && Value != 0.0f)
+	if (Controller && Value != 0.0f&& !bIsCharacterDead)
 	{
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
@@ -62,18 +64,22 @@ void AGamePlayer::MoveRight(float Value)
 
 void AGamePlayer::RotateYaw(float Value)
 {
-	AddControllerYawInput(Value * RotationSpeed);
+	if (Controller && Value != 0.0f && !bIsCharacterDead){
+		AddControllerYawInput(Value * RotationSpeed);
+	}
 }
 
 void AGamePlayer::RotatePitch(float Value)
 {
-	AddControllerPitchInput(Value * RotationSpeed);
+	if (Controller && Value != 0.0f && !bIsCharacterDead) {
+		AddControllerPitchInput(Value * RotationSpeed);
+	}
 }
 
 /*¹¥»÷*/
 void AGamePlayer::Attack()
 {
-	if (CanAttack && AttackMontage){
+	if (CanAttack && AttackMontage&& !bIsCharacterDead){
 		PlayAnimMontage(AttackMontage);
 		CanAttack = false;
 		FOnMontageEnded MontageEndedDelegate;
@@ -127,9 +133,17 @@ void AGamePlayer::PerformAttack()
 /*ÊÜ»÷*/
 float AGamePlayer::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	Health -= DamageAmount;
-	UE_LOG(LogTemp, Warning, TEXT("Player Health: %f"), Health);
-	if (Health <= 0.0f)
+	CurrentHealth -= DamageAmount;
+	float HealthPercent = FMath::Clamp(CurrentHealth / MaxHealth, 0.0f, 1.0f);
+	AMyHUD* HUD = Cast<AMyHUD>(GetWorld()->GetFirstPlayerController()->GetHUD());
+	if (HUD&& !bIsCharacterDead)
+	{
+		HUD->ShowDamageEffect();
+		HUD->UpdateHealth(HealthPercent);
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Player Health: %f"), CurrentHealth);
+	if (CurrentHealth <= 0.0f)
 	{
 		PlayerDie();
 	}
@@ -147,6 +161,7 @@ void AGamePlayer::PlayerDie()
 {
 	GetMesh()->SetSimulatePhysics(true);
 	GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
+	bIsCharacterDead = true;
 }
 
 void AGamePlayer::ApplyKnockback(const FVector& KnockbackDirection, float KnockbackStrength)
@@ -157,6 +172,8 @@ void AGamePlayer::ApplyKnockback(const FVector& KnockbackDirection, float Knockb
 		GetCharacterMovement()->AddImpulse(KnockbackImpulse, true);
 	}
 }
+
+
 
 
 

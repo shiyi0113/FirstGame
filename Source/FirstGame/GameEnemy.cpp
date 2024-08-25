@@ -5,13 +5,13 @@ AGameEnemy::AGameEnemy()
 	PrimaryActorTick.bCanEverTick = true;
 	AttackRangeArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("AttackRangeArrow"));
 	AttackRangeArrow->SetupAttachment(RootComponent);
+	CurrentHealth = MaxHealth;
 }
 
 void AGameEnemy::BeginPlay()
 {
 	Super::BeginPlay();
 	TargetActor = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-
 }
 
 void AGameEnemy::Tick(float DeltaTime)
@@ -33,9 +33,9 @@ void AGameEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 /*ÊÜ»÷*/
 float AGameEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	Health -= DamageAmount;
-	UE_LOG(LogTemp, Warning, TEXT("Enemy Health: %f"), Health);
-	if (Health <= 0.0f)
+	CurrentHealth -= DamageAmount;
+	UE_LOG(LogTemp, Warning, TEXT("Enemy Health: %f"), CurrentHealth);
+	if (CurrentHealth <= 0.0f)
 	{
 		EnemyDie();
 	}
@@ -64,7 +64,6 @@ void AGameEnemy::ApplyKnockback(const FVector& KnockbackDirection, float Knockba
 		GetCharacterMovement()->AddImpulse(KnockbackImpulse, true);
 	}
 }
-
 
 /*¹¥»÷*/
 void AGameEnemy::Attack()
@@ -103,7 +102,7 @@ void AGameEnemy::PerformAttack()
 		CollisionShape
 	);
 
-	if (bHit && !bIsAttacking && Health>0)
+	if (bHit && !bIsAttacking && CurrentHealth >0)
 	{
 		for (auto& Hit : HitResults)
 		{
@@ -138,8 +137,10 @@ void AGameEnemy::AttackTarget()
 	{
 		bIsAttacking = true;
 		FDamageEvent DamageEvent;
-		Player->TakeDamage(Damage, DamageEvent, GetController(), this);
-		Attack();                // ²¥·Å¹¥»÷¶¯»­
+		if (Player->CurrentHealth > 0) {
+			Player->TakeDamage(Damage, DamageEvent, GetController(), this);
+			Attack();                // ²¥·Å¹¥»÷¶¯»­
+		}
 		GetWorld()->GetTimerManager().SetTimer(AttackTimerHandle, this, &AGameEnemy::ResetAttack, 1.0f, false);
 	}
 }
@@ -148,3 +149,5 @@ void AGameEnemy::ResetAttack()
 {
 	bIsAttacking = false;
 }
+
+

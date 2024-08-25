@@ -4,7 +4,6 @@
 #include "Engine/Engine.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "CoreMinimal.h"
-
 #include "GameFramework/Character.h"
 #include "MyAIController.h"
 #include "Kismet/GameplayStatics.h"
@@ -25,7 +24,8 @@ protected:
 
 private://变量
 	UPROPERTY(EditDefaultsOnly)
-	float Health = 20.0f;  //生命值
+	float MaxHealth = 20.0f;  //最大生命值
+	float CurrentHealth;         //当前生命值
 	bool CanAttack = true; //控制动画播放
 	UPROPERTY(EditDefaultsOnly)
 	UAnimMontage* AttackMontage;     //攻击动画蒙太奇
@@ -45,4 +45,5 @@ private://函数
 	void ResetAttack();     //防止重复攻击
 	void Attack();          //攻击动画
 	void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);  //播放完攻击动画才能再播放
+
 };

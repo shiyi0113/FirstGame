@@ -1,5 +1,5 @@
 #include "EnemySpawner.h"
-
+#include "MyHUD.h"
 
 AEnemySpawner::AEnemySpawner()
 {
@@ -22,8 +22,13 @@ void AEnemySpawner::BeginPlay()
 void AEnemySpawner::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	//检测当前场景中的敌人数量
-	EnemiesRemaining = GetNumberOfGameEnemies();
+	EnemiesRemaining = GetNumberOfGameEnemies();//检测当前场景中的敌人数量
+	AMyHUD* HUD = Cast<AMyHUD>(GetWorld()->GetFirstPlayerController()->GetHUD());
+	if (HUD)
+	{
+		HUD->SetCurrentWave(CurrentWaveIndex);
+		HUD->SetEnemyCount(EnemiesRemaining);
+	}
 	if (EnemiesRemaining <= 0)
 	{
 		CurrentWaveIndex++;

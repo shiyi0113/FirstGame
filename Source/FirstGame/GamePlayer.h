@@ -7,7 +7,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/ArrowComponent.h"
 #include "Camera/CameraComponent.h"
-
 #include "GamePlayer.generated.h"
 
 UCLASS()
@@ -22,7 +21,8 @@ public:
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 	void PerformAttack();   //攻击函数
 	UPROPERTY(EditAnywhere)
-	float Health = 100.0f;            //生命值
+	float MaxHealth = 500.0f;            //最大生命值
+	float CurrentHealth;                 //当前生命值
 protected:
 	virtual void BeginPlay() override;
 	
@@ -43,7 +43,7 @@ private://变量
 
 	bool CanAttack = true;
 	TArray<AActor*> DamagedActors; //存储已经受击的敌人
-
+	bool bIsCharacterDead;
 private://函数
 	void MoveForward(float Value);  //前后移动
 	void MoveRight(float Value);    //左右移动
