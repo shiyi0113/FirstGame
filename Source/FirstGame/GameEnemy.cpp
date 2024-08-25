@@ -34,7 +34,11 @@ void AGameEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 float AGameEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	CurrentHealth -= DamageAmount;
-	UE_LOG(LogTemp, Warning, TEXT("Enemy Health: %f"), CurrentHealth);
+	//UE_LOG(LogTemp, Warning, TEXT("Enemy Health: %f"), CurrentHealth);
+	if (HitSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, HitSound, GetActorLocation());
+	}
 	if (CurrentHealth <= 0.0f)
 	{
 		EnemyDie();
@@ -53,7 +57,7 @@ void AGameEnemy::EnemyDie()
 {
 	GetMesh()->SetSimulatePhysics(true);
 	GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
-	SetLifeSpan(3.0f);
+	SetLifeSpan(2.5f);
 }
 
 void AGameEnemy::ApplyKnockback(const FVector& KnockbackDirection, float KnockbackStrength)
@@ -137,7 +141,7 @@ void AGameEnemy::AttackTarget()
 	{
 		bIsAttacking = true;
 		FDamageEvent DamageEvent;
-		if (Player->CurrentHealth > 0) {
+		if (Player->CurrentHealth > 0&&CurrentHealth>0) {
 			Player->TakeDamage(Damage, DamageEvent, GetController(), this);
 			Attack();                // ²¥·Å¹¥»÷¶¯»­
 		}

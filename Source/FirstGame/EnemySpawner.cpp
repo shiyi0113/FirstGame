@@ -55,6 +55,10 @@ void AEnemySpawner::SpawnWave()
 {
 	if (CurrentWaveIndex < WaveEnemyCounts.Num())
 	{
+		if (WaveSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, WaveSound, GetActorLocation());
+		}
 		int32 EnemyCount = WaveEnemyCounts[CurrentWaveIndex];
 		EnemiesRemaining = EnemyCount;
 		UE_LOG(LogTemp, Warning, TEXT("Spawning wave %d with %d enemies"), CurrentWaveIndex + 1, EnemyCount);

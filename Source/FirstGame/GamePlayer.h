@@ -21,7 +21,7 @@ public:
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 	void PerformAttack();   //攻击函数
 	UPROPERTY(EditAnywhere)
-	float MaxHealth = 500.0f;            //最大生命值
+	float MaxHealth = 300;               //最大生命值
 	float CurrentHealth;                 //当前生命值
 protected:
 	virtual void BeginPlay() override;
@@ -32,8 +32,10 @@ private://变量
 	UPROPERTY(EditDefaultsOnly)
 	UAnimMontage* AttackMontage;     //攻击动画
 	UArrowComponent* ArrowComponent; //箭头组件
-
-
+	UPROPERTY(EditDefaultsOnly)
+	USoundBase* HitSound;        //受击音效
+	UPROPERTY(EditDefaultsOnly)
+	USoundBase* DieSound;        //受击音效
 	UPROPERTY(EditAnywhere)
 	float MoveSpeed = 1.0f;          //移动速度
 	UPROPERTY(EditAnywhere) 
@@ -50,6 +52,8 @@ private://函数
 	void RotateYaw(float Value);    //X方向旋转
 	void RotatePitch(float Value);  //Y方向旋转
 	void Attack();                  //攻击动画
+	void ShowMouse();               //按M键显示鼠标
+
 	void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);  //播放完攻击动画才能再播放
 	void PlayerDie();   //死亡处理
 	void ApplyKnockback(const FVector& KnockbackDirection, float KnockbackStrength); //未死亡击退效果

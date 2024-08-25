@@ -5,7 +5,7 @@ void AMyHUD::DrawHUD()
 {
     Super::DrawHUD();
 
-    FString WaveText = FString::Printf(TEXT("Wave: %d"), CurrentWave);
+    FString WaveText = FString::Printf(TEXT("Wave: %d"), CurrentWave + 1);
     FString EnemyText = FString::Printf(TEXT("Enemies: %d"), EnemyCount);
 
     // 设置文本位置
@@ -37,8 +37,8 @@ void AMyHUD::DrawHUD()
     }
 
     // 绘制血条背景
-    FVector2D HealthBarPosition(Canvas->SizeX / 2 - 200, Canvas->SizeY - 50);
-    FVector2D HealthBarSize(400, 20);
+    FVector2D HealthBarPosition(Canvas->SizeX / 2 - 500, Canvas->SizeY - 100);
+    FVector2D HealthBarSize(1000, 40);
     FCanvasTileItem HealthBarBackground(HealthBarPosition, HealthBarSize, FLinearColor::Black);
     Canvas->DrawItem(HealthBarBackground);
     // 绘制血条

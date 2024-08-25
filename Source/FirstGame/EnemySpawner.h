@@ -33,4 +33,6 @@ private:
     void SpawnWave();
     void SpawnEnemies(int32 EnemyCount);
     int32 GetNumberOfGameEnemies() const;
+    UPROPERTY(EditDefaultsOnly)
+    USoundBase* WaveSound;        //≤®¥Œ“Ù–ß
 };

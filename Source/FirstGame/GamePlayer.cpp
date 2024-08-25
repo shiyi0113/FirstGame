@@ -14,6 +14,7 @@ AGamePlayer::AGamePlayer()
 	CameraArm->TargetArmLength = 300.0f;      // µ¯»É±ÛµÄ³¤¶È
 	CameraArm->bUsePawnControlRotation = true;// Ê¹µ¯»É±Û¸úËæ¿ØÖÆÆ÷µÄÐý×ª
 	bUseControllerRotationYaw = false;        // ½ûÓÃ¿ØÖÆÆ÷Ðý×ª
+
 	CurrentHealth = MaxHealth;
 	bIsCharacterDead = false;
 }
@@ -37,6 +38,7 @@ void AGamePlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAxis(TEXT("RotateYaw"), this, &AGamePlayer::RotateYaw);
 	PlayerInputComponent->BindAxis(TEXT("RotatePitch"), this, &AGamePlayer::RotatePitch);
 	PlayerInputComponent->BindAction(TEXT("Attack"), IE_Pressed, this, &AGamePlayer::Attack);
+	PlayerInputComponent->BindAction(TEXT("ShowMouse"), IE_Pressed, this, &AGamePlayer::ShowMouse);
 }
 
 /*ÒÆ¶¯*/
@@ -76,6 +78,16 @@ void AGamePlayer::RotatePitch(float Value)
 	}
 }
 
+void AGamePlayer::ShowMouse()
+{
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (PC)
+	{
+		PC->bShowMouseCursor = true;
+		PC->bEnableClickEvents = true;
+		PC->bEnableMouseOverEvents = true;
+	}
+}
 /*¹¥»÷*/
 void AGamePlayer::Attack()
 {
@@ -98,10 +110,10 @@ void AGamePlayer::OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 void AGamePlayer::PerformAttack()
 {
 	FVector Start = ArrowComponent->GetComponentLocation();
-	FVector End = Start + ArrowComponent->GetForwardVector() * 100.0f;
+	FVector End = Start + ArrowComponent->GetForwardVector() * 150.0f;
 	TArray<FHitResult> HitResults;
 	FCollisionShape CollisionShape;
-	CollisionShape.SetSphere(25.0f);
+	CollisionShape.SetSphere(30.0f);
 	/*»æÖÆ¹¥»÷·¶Î§*/
 	//DrawDebugSphere(GetWorld(), Start, TraceRadius, 12, FColor::Red, false, 1.0f);
 	//DrawDebugSphere(GetWorld(), End, TraceRadius, 12, FColor::Red, false, 1.0f);
@@ -135,8 +147,12 @@ float AGamePlayer::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
 {
 	CurrentHealth -= DamageAmount;
 	float HealthPercent = FMath::Clamp(CurrentHealth / MaxHealth, 0.0f, 1.0f);
+	if (HitSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, HitSound, GetActorLocation());
+	}
 	AMyHUD* HUD = Cast<AMyHUD>(GetWorld()->GetFirstPlayerController()->GetHUD());
-	if (HUD&& !bIsCharacterDead)
+	if (HUD && !bIsCharacterDead)
 	{
 		HUD->ShowDamageEffect();
 		HUD->UpdateHealth(HealthPercent);
@@ -146,6 +162,10 @@ float AGamePlayer::TakeDamage(float DamageAmount, FDamageEvent const& DamageEven
 	if (CurrentHealth <= 0.0f)
 	{
 		PlayerDie();
+		if (DieSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, DieSound, GetActorLocation());
+		}
 	}
 	else {
 		if (DamageCauser)

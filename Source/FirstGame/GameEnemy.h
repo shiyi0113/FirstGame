@@ -35,7 +35,8 @@ private://变量
 	UArrowComponent* AttackRangeArrow; //箭头组件
 	bool bIsAttacking = false;  //防止重复攻击
 	FTimerHandle AttackTimerHandle; 
-
+	UPROPERTY(EditDefaultsOnly)
+	USoundBase* HitSound;        //受击音效
 private://函数
 	void EnemyDie();   //死亡处理
 	void ApplyKnockback(const FVector& KnockbackDirection, float KnockbackStrength); //未死亡击退效果
